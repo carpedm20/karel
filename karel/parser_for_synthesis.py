@@ -258,7 +258,11 @@ class KarelForSynthesisParser(Parser):
                             | NO_MARKERS_PRESENT
         '''
         cond_without_not = p[1]
-        p[0] = lambda: getattr(self.karel, cond_without_not)()
+        karel = self.karel
+        def fn():
+            return getattr(karel, cond_without_not)()
+
+        p[0] = fn
 
     def p_action(self, p):
         '''action : MOVE
@@ -268,8 +272,9 @@ class KarelForSynthesisParser(Parser):
                   | PUT_MARKER
         '''
         action = p[1]
+        karel = self.karel
         def fn():
-            return getattr(self.karel, action)()
+            return getattr(karel, action)()
         p[0] = fn
 
     def p_cste(self, p):

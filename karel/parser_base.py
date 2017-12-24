@@ -18,23 +18,20 @@ class Parser(object):
     precedence = ()
 
     def __init__(self, rng=None, min_int=0, max_int=19,
-                 max_func_call=1000, debug=False, **kwargs):
+                 max_func_call=100, debug=False, **kwargs):
 
         self.names = {}
         self.debug = kwargs.get('debug', 0)
 
         # Build the lexer and parser
         modname = self.__class__.__name__
-        self.debugfile = modname + ".dbg"
-        self.tabmodule = modname + "_" + "parsetab"
 
         self.lexer = lex.lex(module=self, debug=self.debug)
 
-        _, self.grammar = yacc.yacc(
+        self.yacc, self.grammar = yacc.yacc(
                 module=self,
                 debug=self.debug,
-                debugfile=self.debugfile,
-                tabmodule=self.tabmodule,
+                tabmodule="_parsetab",
                 with_grammar=True)
 
         self.prodnames = self.grammar.Prodnames
@@ -71,11 +68,9 @@ class Parser(object):
             @wraps(f)
             def wrapped(*args, **kwargs):
                 if self.call_counter[0] > self.max_func_call:
-                    print(self.call_counter[0])
                     raise TimeoutError
                 r = f(*args, **kwargs)
                 self.call_counter[0] += 1
-                print(self.call_counter[0])
                 return r
             return wrapped
 
@@ -115,6 +110,7 @@ class Parser(object):
             def fn():
                 return self.funct_table[code_hash]()
         else:
+            yacc = self.yacc
             def fn():
                 return yacc.parse(code, **kwargs)()
             self.funct_table[code_hash] = fn
