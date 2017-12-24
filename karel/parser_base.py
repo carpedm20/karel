@@ -18,7 +18,7 @@ class Parser(object):
     precedence = ()
 
     def __init__(self, rng=None, min_int=0, max_int=19,
-                 max_func_call=50, debug=False, **kwargs):
+                 max_func_call=1000, debug=False, **kwargs):
 
         self.names = {}
         self.debug = kwargs.get('debug', 0)
@@ -71,9 +71,11 @@ class Parser(object):
             @wraps(f)
             def wrapped(*args, **kwargs):
                 if self.call_counter[0] > self.max_func_call:
+                    print(self.call_counter[0])
                     raise TimeoutError
                 r = f(*args, **kwargs)
                 self.call_counter[0] += 1
+                print(self.call_counter[0])
                 return r
             return wrapped
 
@@ -157,9 +159,18 @@ class Parser(object):
 
         return code
 
-    def random_tokens(self, start_token="prog", depth=0, stmt_max_depth=5, **kwargs):
-        if start_token == 'stmt' and depth > stmt_max_depth:
-            start_token = "action"
+    def random_tokens(self, start_token="prog", depth=0, stmt_min_depth=2, stmt_max_depth=5, **kwargs):
+        #print(depth, start_token)
+        if start_token == 'stmt':
+            if depth > stmt_max_depth:
+                start_token = "action"
+            #if depth < 2:
+            #    start_token = self.rng.choice(
+            #            ['action'] * 1
+            #            + ['while'] * 4
+            #            + ['repeat'] * 4
+            #            + ['stmt_stmt'] * 16
+            #            + ['if', 'ifelse'] * 4, 1)[0]
 
         codes = []
         candidates = self.prodnames[start_token]

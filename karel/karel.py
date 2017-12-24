@@ -70,7 +70,13 @@ class Karel(object):
             raise Exception(" [!] one of `world_size`, `world_path` and `world` should be passed")
 
         state = np.zeros_like(self.world, dtype=np.int8)
-        self.zero_state = np.tile(np.expand_dims(state, -1), [1, 1, 16])
+
+        self.max_marker = 10
+        self.hero_direction = 4
+
+        self.zero_state = np.tile(
+                np.expand_dims(state, -1),
+                [1, 1, self.hero_direction + 1 + (self.max_marker + 1)])
 
         if self.debug: self.draw()
 
@@ -236,6 +242,7 @@ class Karel(object):
         for (x, y), count in Counter(self.markers).items():
             state[y][x][5] = 0
             state[y][x][5 + count] = 1
+            #state[y][x][min(5 + count, self.max_marker)] = 1
 
         # draw2d(state[:,:,5])
         return state
